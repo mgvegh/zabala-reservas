@@ -66,7 +66,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
 
   const handleNoticeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting || !noticeMessage.trim() || !noticeExpiresAt) return;
+    if (isSubmitting || !noticeMessage.trim()) return;
     setError('');
     setIsSubmitting(true);
     try {
@@ -265,16 +265,15 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
               />
             </div>
             <div>
-              <label className="form-label">Expirará (desaparece) el día:</label>
+              <label className="form-label">Expirará (desaparece) el día (opcional):</label>
               <input 
                 type="date" 
-                required 
                 min={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`}
                 value={noticeExpiresAt} 
                 onChange={e => setNoticeExpiresAt(e.target.value)} 
               />
             </div>
-            <button type="submit" disabled={isSubmitting || !noticeMessage.trim() || !noticeExpiresAt} className="btn w-full" style={{ padding: '1rem', marginTop: '0.25rem', fontSize: '1rem', backgroundColor: 'var(--color-text-primary)', color: '#fff', opacity: (isSubmitting || !noticeMessage.trim() || !noticeExpiresAt) ? 0.7 : 1 }}>
+            <button type="submit" disabled={isSubmitting || !noticeMessage.trim()} className="btn w-full" style={{ padding: '1rem', marginTop: '0.25rem', fontSize: '1rem', backgroundColor: 'var(--color-text-primary)', color: '#fff', opacity: (isSubmitting || !noticeMessage.trim()) ? 0.7 : 1 }}>
               {isSubmitting ? 'Publicando...' : 'Publicar Aviso'}
             </button>
           </form>
