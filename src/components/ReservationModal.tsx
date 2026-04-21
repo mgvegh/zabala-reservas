@@ -38,8 +38,16 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
     e.preventDefault();
     if (isSubmitting) return;
     setError('');
+    
     if (!dateStr) { setError('Por favor seleccioná una fecha.'); return; }
     
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    if (dateStr < todayStr) {
+      setError('No está permitido reservar en fechas pasadas.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const result = await addReservation({ space, turn, dateStr, department });
@@ -215,7 +223,13 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
             <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '0.75rem' }}>
               <div>
                 <label className="form-label">Fecha</label>
-                <input type="date" required value={dateStr} onChange={e => setDateStr(e.target.value)} />
+                <input 
+                  type="date" 
+                  required 
+                  min={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`}
+                  value={dateStr} 
+                  onChange={e => setDateStr(e.target.value)} 
+                />
               </div>
               <div>
                 <label className="form-label">Depto</label>
@@ -252,7 +266,13 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
             </div>
             <div>
               <label className="form-label">Expirará (desaparece) el día:</label>
-              <input type="date" required value={noticeExpiresAt} onChange={e => setNoticeExpiresAt(e.target.value)} />
+              <input 
+                type="date" 
+                required 
+                min={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`}
+                value={noticeExpiresAt} 
+                onChange={e => setNoticeExpiresAt(e.target.value)} 
+              />
             </div>
             <button type="submit" disabled={isSubmitting || !noticeMessage.trim() || !noticeExpiresAt} className="btn w-full" style={{ padding: '1rem', marginTop: '0.25rem', fontSize: '1rem', backgroundColor: 'var(--color-text-primary)', color: '#fff', opacity: (isSubmitting || !noticeMessage.trim() || !noticeExpiresAt) ? 0.7 : 1 }}>
               {isSubmitting ? 'Publicando...' : 'Publicar Aviso'}
