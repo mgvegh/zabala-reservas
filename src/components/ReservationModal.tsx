@@ -26,6 +26,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
   const [dateStr, setDateStr] = useState(initialDate);
   const [department, setDepartment] = useState<Department>('1A');
   const [noticeMessage, setNoticeMessage] = useState('');
+  const [noticeExpiresAt, setNoticeExpiresAt] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,11 +58,11 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
 
   const handleNoticeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting || !noticeMessage.trim()) return;
+    if (isSubmitting || !noticeMessage.trim() || !noticeExpiresAt) return;
     setError('');
     setIsSubmitting(true);
     try {
-      await addNotice(noticeMessage.trim());
+      await addNotice(noticeMessage.trim(), noticeExpiresAt, false);
       setSuccess(true);
       setTimeout(onClose, 1800);
     } catch (err: any) {
@@ -249,7 +250,11 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
                 }}
               />
             </div>
-            <button type="submit" disabled={isSubmitting} className="btn w-full" style={{ padding: '1rem', marginTop: '0.25rem', fontSize: '1rem', backgroundColor: 'var(--color-text-primary)', color: '#fff', opacity: isSubmitting ? 0.7 : 1 }}>
+            <div>
+              <label className="form-label">Expirará (desaparece) el día:</label>
+              <input type="date" required value={noticeExpiresAt} onChange={e => setNoticeExpiresAt(e.target.value)} />
+            </div>
+            <button type="submit" disabled={isSubmitting || !noticeMessage.trim() || !noticeExpiresAt} className="btn w-full" style={{ padding: '1rem', marginTop: '0.25rem', fontSize: '1rem', backgroundColor: 'var(--color-text-primary)', color: '#fff', opacity: (isSubmitting || !noticeMessage.trim() || !noticeExpiresAt) ? 0.7 : 1 }}>
               {isSubmitting ? 'Publicando...' : 'Publicar Aviso'}
             </button>
           </form>

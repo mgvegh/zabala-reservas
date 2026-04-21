@@ -22,6 +22,7 @@ const Admin: React.FC = () => {
   // Admin state
   const [tab, setTab] = useState<AdminTab>('notices');
   const [newNotice, setNewNotice] = useState('');
+  const [noticeExpiresAt, setNoticeExpiresAt] = useState('');
   const [blockSpace, setBlockSpace] = useState<Space | 'Ambos'>('Parrilla');
   const [blockDateFrom, setBlockDateFrom] = useState('');
   const [blockDateTo, setBlockDateTo] = useState('');
@@ -42,7 +43,14 @@ const Admin: React.FC = () => {
 
   const handleAddNotice = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newNotice.trim()) { await addNotice(newNotice.trim(), true); setNewNotice(''); }
+    if (!newNotice.trim() || !noticeExpiresAt) return;
+    try {
+      await addNotice(newNotice.trim(), noticeExpiresAt, true);
+      setNewNotice('');
+      setNoticeExpiresAt('');
+    } catch {
+      alert('Error publicando aviso');
+    }
   };
 
   const handleAddBlock = async (e: React.FormEvent) => {
@@ -181,7 +189,16 @@ const Admin: React.FC = () => {
                     rows={3} required
                   />
                 </div>
-                <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>
+                <div>
+                  <label className="form-label">Fecha de expiración</label>
+                  <input
+                    type="date"
+                    required
+                    value={noticeExpiresAt}
+                    onChange={e => setNoticeExpiresAt(e.target.value)}
+                  />
+                </div>
+                <button type="submit" disabled={!newNotice.trim() || !noticeExpiresAt} className="btn btn-primary" style={{ alignSelf: 'flex-start', opacity: (!newNotice.trim() || !noticeExpiresAt) ? 0.6 : 1 }}>
                   <PlusCircle size={16} /> Publicar Aviso
                 </button>
               </form>

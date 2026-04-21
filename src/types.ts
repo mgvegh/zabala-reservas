@@ -25,6 +25,7 @@ export interface Notice {
   message: string;
   createdAt: number;
   isAdmin?: boolean;
+  expiresAt: string;
 }
 
 export interface SpaceBlock {
