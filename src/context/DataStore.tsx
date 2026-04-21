@@ -69,23 +69,24 @@ export const DataStoreProvider: React.FC<{ children: ReactNode }> = ({ children 
       return { success: false, error: 'El turno ya se encuentra ocupado. Por favor seleccioná otro turno o espacio.' };
     }
 
-    await addDoc(collection(db, 'reservations'), { ...data, createdAt: Date.now() });
+    // No hacer await de addDoc: Firebase actualizará localmente al instante (optimista) y enviará al server de fondo.
+    addDoc(collection(db, 'reservations'), { ...data, createdAt: Date.now() }).catch(console.error);
     return { success: true };
   };
 
-  const cancelReservation = async (id: string) => await deleteDoc(doc(db, 'reservations', id));
+  const cancelReservation = async (id: string) => { deleteDoc(doc(db, 'reservations', id)).catch(console.error); };
   
   const addNotice = async (message: string) => { 
-    await addDoc(collection(db, 'notices'), { message, createdAt: Date.now() }); 
+    addDoc(collection(db, 'notices'), { message, createdAt: Date.now() }).catch(console.error); 
   };
   
-  const deleteNotice = async (id: string) => await deleteDoc(doc(db, 'notices', id));
+  const deleteNotice = async (id: string) => { deleteDoc(doc(db, 'notices', id)).catch(console.error); };
   
   const addBlock = async (data: Omit<SpaceBlock, 'id' | 'createdAt'>) => { 
-    await addDoc(collection(db, 'blocks'), { ...data, createdAt: Date.now() }); 
+    addDoc(collection(db, 'blocks'), { ...data, createdAt: Date.now() }).catch(console.error); 
   };
   
-  const removeBlock = async (id: string) => await deleteDoc(doc(db, 'blocks', id));
+  const removeBlock = async (id: string) => { deleteDoc(doc(db, 'blocks', id)).catch(console.error); };
 
   return (
     <DataStoreContext.Provider value={{
