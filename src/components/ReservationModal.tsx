@@ -17,12 +17,15 @@ const DEPARTMENTS: Department[] = [
 ];
 
 const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClose }) => {
-  const { addReservation, blocks } = useDataStore();
+  const { addReservation, addNotice, blocks } = useDataStore();
+
+  const [tab, setTab] = useState<'reservar' | 'aviso'>('reservar');
 
   const [space, setSpace] = useState<Space>('Parrilla');
   const [turn, setTurn] = useState<Turn>('Mediodía');
   const [dateStr, setDateStr] = useState(initialDate);
   const [department, setDepartment] = useState<Department>('1A');
+  const [noticeMessage, setNoticeMessage] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,6 +49,21 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
         setError(result.error || 'Ocurrió un error.');
         setIsSubmitting(false);
       }
+    } catch (err: any) {
+      setError(err.message || 'Error al conectar con el servidor.');
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleNoticeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitting || !noticeMessage.trim()) return;
+    setError('');
+    setIsSubmitting(true);
+    try {
+      await addNotice(noticeMessage.trim());
+      setSuccess(true);
+      setTimeout(onClose, 1800);
     } catch (err: any) {
       setError(err.message || 'Error al conectar con el servidor.');
       setIsSubmitting(false);
@@ -76,8 +94,10 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.03em' }}>Nueva Reserva</h2>
-            {formattedDate && (
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.03em' }}>
+              {tab === 'reservar' ? 'Nueva Reserva' : 'Nuevo Aviso'}
+            </h2>
+            {formattedDate && tab === 'reservar' && (
               <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '0.15rem', textTransform: 'capitalize' }}>
                 {formattedDate}
               </p>
@@ -86,15 +106,40 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
           <button onClick={onClose} style={{ padding: '0.4rem', color: 'var(--color-text-muted)' }}><X size={20} /></button>
         </div>
 
+      <div style={{ display: 'flex', gap: '4px', backgroundColor: 'var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '4px', marginBottom: '1.25rem' }}>
+          <button
+            onClick={() => { setTab('reservar'); setError(''); }}
+            style={{
+              flex: 1, padding: '0.5rem', fontWeight: 700, fontSize: '0.85rem',
+              borderRadius: 'var(--radius-md)', border: 'none', cursor: 'pointer',
+              backgroundColor: tab === 'reservar' ? 'var(--color-text-primary)' : 'transparent',
+              color: tab === 'reservar' ? '#fff' : 'var(--color-text-muted)', transition: 'all 0.2s',
+            }}
+          >Reserva</button>
+          <button
+            onClick={() => { setTab('aviso'); setError(''); }}
+            style={{
+              flex: 1, padding: '0.5rem', fontWeight: 700, fontSize: '0.85rem',
+              borderRadius: 'var(--radius-md)', border: 'none', cursor: 'pointer',
+              backgroundColor: tab === 'aviso' ? 'var(--color-text-primary)' : 'transparent',
+              color: tab === 'aviso' ? '#fff' : 'var(--color-text-muted)', transition: 'all 0.2s',
+            }}
+          >Aviso Público</button>
+        </div>
+
         {success ? (
           <div style={{ textAlign: 'center', padding: '2rem 0' }}>
             <CheckCircle2 size={48} style={{ color: 'var(--color-sum)', margin: '0 auto 0.75rem' }} />
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-sum)' }}>¡Reserva confirmada!</h3>
-            <p style={{ color: 'var(--color-text-muted)', marginTop: '0.25rem', fontSize: '0.875rem' }}>
-              {space} · Turno {turn} · Depto {department}
-            </p>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-sum)' }}>
+              {tab === 'reservar' ? '¡Reserva confirmada!' : '¡Aviso publicado!'}
+            </h3>
+            {tab === 'reservar' && (
+              <p style={{ color: 'var(--color-text-muted)', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                {space} · Turno {turn} · Depto {department}
+              </p>
+            )}
           </div>
-        ) : (
+        ) : tab === 'reservar' ? (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
             {/* Block warning */}
@@ -181,6 +226,31 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
 
             <button type="submit" disabled={isSubmitting} className="btn btn-primary w-full" style={{ padding: '1rem', marginTop: '0.25rem', fontSize: '1rem', opacity: isSubmitting ? 0.7 : 1 }}>
               {isSubmitting ? 'Confirmando...' : 'Confirmar Reserva'}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleNoticeSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {error && (
+              <div style={{
+                backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c',
+                padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', fontSize: '0.875rem', fontWeight: 500,
+              }}>{error}</div>
+            )}
+            <div>
+              <label className="form-label" style={{ marginBottom: '0.5rem' }}>Mensaje para el edificio</label>
+              <textarea
+                value={noticeMessage} onChange={e => setNoticeMessage(e.target.value)}
+                placeholder="Ej: El plomero viene al 3A hoy a la tarde..."
+                required rows={4}
+                style={{
+                  width: '100%', padding: '0.875rem', borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--color-border)', fontSize: '0.9rem',
+                  fontFamily: 'inherit', resize: 'vertical'
+                }}
+              />
+            </div>
+            <button type="submit" disabled={isSubmitting} className="btn w-full" style={{ padding: '1rem', marginTop: '0.25rem', fontSize: '1rem', backgroundColor: 'var(--color-text-primary)', color: '#fff', opacity: isSubmitting ? 0.7 : 1 }}>
+              {isSubmitting ? 'Publicando...' : 'Publicar Aviso'}
             </button>
           </form>
         )}
