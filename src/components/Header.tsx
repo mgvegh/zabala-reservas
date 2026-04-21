@@ -2,9 +2,17 @@ import React from 'react';
 import { useDataStore } from '../context/DataStore';
 import { Megaphone, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const Header: React.FC = () => {
   const { notices } = useDataStore();
+
+  const sortedNotices = [...notices].sort((a, b) => {
+    if (a.isAdmin && !b.isAdmin) return -1;
+    if (!a.isAdmin && b.isAdmin) return 1;
+    return b.createdAt - a.createdAt;
+  });
 
   return (
     <header style={{
@@ -57,31 +65,36 @@ const Header: React.FC = () => {
         <div style={{
           borderRadius: 'var(--radius-lg)',
           padding: '0.75rem 1rem',
-          border: notices.length > 0 ? '1px solid #fed7aa' : '1px dashed var(--color-border)',
-          backgroundColor: notices.length > 0 ? '#fff7ed' : 'var(--color-surface)',
+          border: sortedNotices.length > 0 ? '1px solid #fed7aa' : '1px dashed var(--color-border)',
+          backgroundColor: sortedNotices.length > 0 ? '#fff7ed' : 'var(--color-surface)',
           transition: 'all 0.3s',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: notices.length > 0 ? '0.5rem' : 0 }}>
-            <Megaphone size={14} style={{ color: notices.length > 0 ? '#ea580c' : 'var(--color-text-muted)', flexShrink: 0 }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: sortedNotices.length > 0 ? '0.5rem' : 0 }}>
+            <Megaphone size={14} style={{ color: sortedNotices.length > 0 ? '#ea580c' : 'var(--color-text-muted)', flexShrink: 0 }} />
             <span style={{
               fontSize: '0.75rem', fontWeight: 700,
-              color: notices.length > 0 ? '#ea580c' : 'var(--color-text-muted)',
+              color: sortedNotices.length > 0 ? '#ea580c' : 'var(--color-text-muted)',
               textTransform: 'uppercase', letterSpacing: '0.06em',
             }}>
               Avisos
             </span>
           </div>
 
-          {notices.length > 0 ? (
+          {sortedNotices.length > 0 ? (
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              {notices.map(n => (
+              {sortedNotices.map(n => (
                 <li key={n.id} style={{ 
                   fontSize: '0.875rem', color: n.isAdmin ? '#9f1239' : '#9a3412', 
                   fontWeight: n.isAdmin ? 700 : 500, paddingLeft: '1.5rem',
                   display: 'flex', gap: '0.4rem', alignItems: 'flex-start'
                 }}>
                   <span style={{ color: n.isAdmin ? '#e11d48' : '#f97316' }}>{n.isAdmin ? '🚨' : '•'}</span>
-                  <span>{n.message}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
+                    <span>{n.isAdmin ? `ADMINISTRACIÓN - "${n.message}"` : n.message}</span>
+                    <span style={{ fontSize: '0.7rem', color: n.isAdmin ? '#be123c' : 'var(--color-text-muted)', fontWeight: 400 }}>
+                      {format(n.createdAt, "d MMM, HH:mm 'hs'", { locale: es })}
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>

@@ -43,7 +43,7 @@ const Admin: React.FC = () => {
 
   const handleAddNotice = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newNotice.trim() || !noticeExpiresAt) return;
+    if (!newNotice.trim()) return;
     try {
       await addNotice(newNotice.trim(), noticeExpiresAt, true);
       setNewNotice('');
@@ -190,15 +190,14 @@ const Admin: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="form-label">Fecha de expiración</label>
+                  <label className="form-label">Fecha de expiración (opcional)</label>
                   <input
                     type="date"
-                    required
                     value={noticeExpiresAt}
                     onChange={e => setNoticeExpiresAt(e.target.value)}
                   />
                 </div>
-                <button type="submit" disabled={!newNotice.trim() || !noticeExpiresAt} className="btn btn-primary" style={{ alignSelf: 'flex-start', opacity: (!newNotice.trim() || !noticeExpiresAt) ? 0.6 : 1 }}>
+                <button type="submit" disabled={!newNotice.trim()} className="btn btn-primary" style={{ alignSelf: 'flex-start', opacity: (!newNotice.trim()) ? 0.6 : 1 }}>
                   <PlusCircle size={16} /> Publicar Aviso
                 </button>
               </form>
@@ -211,7 +210,12 @@ const Admin: React.FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {notices.map(n => (
                   <div key={n.id} className="card" style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', padding: '0.875rem 1rem' }}>
-                    <p style={{ flex: 1, fontSize: '0.875rem', margin: 0 }}>{n.message}</p>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: '0.875rem', margin: 0 }}>{n.message}</p>
+                      <p style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', margin: '0.2rem 0 0' }}>
+                        {format(n.createdAt, "d MMM yyyy, HH:mm 'hs'", { locale: es })}
+                      </p>
+                    </div>
                     <button onClick={() => deleteNotice(n.id)} style={{ color: 'var(--color-parrilla)', flexShrink: 0, padding: '0.2rem' }} title="Eliminar">
                       <Trash2 size={16} />
                     </button>
