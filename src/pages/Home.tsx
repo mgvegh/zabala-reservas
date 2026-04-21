@@ -28,6 +28,13 @@ const Home: React.FC = () => {
 
       <main className="container animate-fade-in" style={{ maxWidth: '860px', paddingTop: '1.5rem' }}>
 
+        <div>
+          <h3 className="section-title">Próximas Reservas</h3>
+          <UpcomingList />
+        </div>
+
+        <hr className="divider" />
+
         {/* Calendar nav */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.875rem' }}>
           <h2 style={{
@@ -62,13 +69,6 @@ const Home: React.FC = () => {
         </div>
 
         <CalendarGrid currentMonth={currentMonth} onDayClick={handleDayClick} />
-
-        <hr className="divider" />
-
-        <div>
-          <h3 className="section-title">Próximas Reservas</h3>
-          <UpcomingList />
-        </div>
       </main>
 
       {/* FAB */}
