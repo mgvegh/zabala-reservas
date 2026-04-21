@@ -96,8 +96,13 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({ currentMonth, onDayClick })
                   alignItems: 'center',
                   gap: '3px',
                 }}>
-                  <Lock size={8} style={{ flexShrink: 0 }} />
-                  {b.space === 'Ambos' ? 'BLOQUEADO' : `${b.space.toUpperCase()} bloq.`}
+                  <Lock size={8} style={{ flexShrink: 0 }} className="hidden-mobile" />
+                  <span className="hidden-mobile">
+                    {b.space === 'Ambos' ? 'BLOQUEADO' : `${b.space.toUpperCase()} bloq.`}
+                  </span>
+                  <span className="show-mobile">
+                    🔒 {b.space === 'Ambos' ? 'T' : b.space.substring(0, 1)}
+                  </span>
                 </div>
               ))}
 
@@ -107,8 +112,14 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({ currentMonth, onDayClick })
                   backgroundColor: res.space === 'Parrilla' ? '#fee2e2' : '#dcfce7',
                   color: res.space === 'Parrilla' ? '#b91c1c' : '#15803d',
                   marginBottom: '2px',
+                  display: 'flex', alignItems: 'center', gap: '2px'
                 }}>
-                  {res.space.toUpperCase()} – {res.department}
+                  <span className="hidden-mobile" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {res.space.toUpperCase()} – {res.department}
+                  </span>
+                  <span className="show-mobile">
+                    {res.space === 'Parrilla' ? '🔥' : '🏛'} {res.department}
+                  </span>
                 </div>
               ))}
             </div>

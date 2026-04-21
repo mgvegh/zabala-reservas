@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { useDataStore } from '../context/DataStore';
 import type { Space } from '../types';
-import { Trash2, ArrowLeft, Megaphone, Lock, PlusCircle, ShieldAlert } from 'lucide-react';
+import { Trash2, ArrowLeft, Megaphone, Lock, PlusCircle, ShieldAlert, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 
 const BLOCK_SPACES: (Space | 'Ambos')[] = ['Parrilla', 'SUM', 'Ambos'];
-type AdminTab = 'notices' | 'blocks';
+type AdminTab = 'notices' | 'blocks' | 'reservations';
 
 const Admin: React.FC = () => {
   // ── ALL hooks must be at the top, unconditionally ──
-  const { notices, addNotice, deleteNotice, blocks, addBlock, removeBlock } = useDataStore();
+  const { notices, addNotice, deleteNotice, blocks, addBlock, removeBlock, reservations, cancelReservation } = useDataStore();
 
   // Auth state
   const [isAuth, setIsAuth] = useState(false);
@@ -160,6 +160,10 @@ const Admin: React.FC = () => {
             <Lock size={14} style={{ display: 'inline', marginRight: '0.4rem', verticalAlign: 'middle' }} />
             Bloqueos
           </button>
+          <button style={tabStyle(tab === 'reservations')} onClick={() => setTab('reservations')}>
+            <Calendar size={14} style={{ display: 'inline', marginRight: '0.4rem', verticalAlign: 'middle' }} />
+            Reservas
+          </button>
         </div>
 
         {/* NOTICES TAB */}
@@ -290,6 +294,50 @@ const Admin: React.FC = () => {
                       </div>
                     </div>
                     <button onClick={() => removeBlock(b.id)} style={{ color: 'var(--color-parrilla)', padding: '0.2rem', flexShrink: 0 }} title="Eliminar bloqueo">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* RESERVATIONS TAB */}
+        {tab === 'reservations' && (
+          <div className="animate-fade-in">
+            <h3 className="section-title">Todas las reservas ({reservations.length})</h3>
+            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
+              Las reservas se ordenan comenzando por la más lejana (futuro) hasta la más antigua.
+            </p>
+            {reservations.length === 0 ? (
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>No hay reservas registradas en el sistema.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {[...reservations].sort((a, b) => b.dateStr.localeCompare(a.dateStr)).map(r => (
+                  <div key={r.id} className="card" style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', padding: '0.875rem 1rem' }}>
+                    <div style={{
+                      width: '36px', height: '36px', borderRadius: 'var(--radius-md)',
+                      backgroundColor: r.space === 'Parrilla' ? '#fee2e2' : '#dcfce7',
+                      color: r.space === 'Parrilla' ? '#b91c1c' : '#15803d',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0, fontWeight: 800, fontSize: '0.8rem'
+                    }}>
+                      {r.space === 'Parrilla' ? '🔥' : '🏛'}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>
+                        {format(parseISO(r.dateStr), "EEEE d 'de' MMMM", { locale: es })} · {r.turn}
+                      </div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginTop: '0.15rem' }}>
+                        {r.space} · Depto {r.department}
+                      </div>
+                    </div>
+                    <button onClick={async () => {
+                      if (window.confirm(`¿Estás seguro que querés eliminar la reserva del depto ${r.department}?`)) {
+                        await cancelReservation(r.id);
+                      }
+                    }} style={{ color: 'var(--color-parrilla)', padding: '0.2rem', flexShrink: 0 }} title="Eliminar reserva">
                       <Trash2 size={16} />
                     </button>
                   </div>
