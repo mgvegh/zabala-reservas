@@ -15,7 +15,7 @@ interface DataStoreContextProps {
   isLoading: boolean;
   addReservation: (data: Omit<Reservation, 'id' | 'createdAt'>) => Promise<{ success: boolean; error?: string }>;
   cancelReservation: (id: string) => Promise<void>;
-  addNotice: (message: string) => Promise<void>;
+  addNotice: (message: string, isAdmin?: boolean) => Promise<void>;
   deleteNotice: (id: string) => Promise<void>;
   addBlock: (data: Omit<SpaceBlock, 'id' | 'createdAt'>) => Promise<void>;
   removeBlock: (id: string) => Promise<void>;
@@ -76,8 +76,8 @@ export const DataStoreProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   const cancelReservation = async (id: string) => { deleteDoc(doc(db, 'reservations', id)).catch(console.error); };
   
-  const addNotice = async (message: string) => { 
-    addDoc(collection(db, 'notices'), { message, createdAt: Date.now() }).catch(console.error); 
+  const addNotice = async (message: string, isAdmin: boolean = false) => { 
+    addDoc(collection(db, 'notices'), { message, isAdmin, createdAt: Date.now() }).catch(console.error); 
   };
   
   const deleteNotice = async (id: string) => { deleteDoc(doc(db, 'notices', id)).catch(console.error); };

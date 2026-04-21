@@ -42,7 +42,7 @@ const Admin: React.FC = () => {
 
   const handleAddNotice = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newNotice.trim()) { await addNotice(newNotice.trim()); setNewNotice(''); }
+    if (newNotice.trim()) { await addNotice(newNotice.trim(), true); setNewNotice(''); }
   };
 
   const handleAddBlock = async (e: React.FormEvent) => {

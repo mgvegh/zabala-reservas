@@ -57,26 +57,31 @@ const Header: React.FC = () => {
         <div style={{
           borderRadius: 'var(--radius-lg)',
           padding: '0.75rem 1rem',
-          border: notices.length > 0 ? '1px solid #fecdd3' : '1px dashed var(--color-border)',
-          backgroundColor: notices.length > 0 ? '#fff1f2' : 'var(--color-surface)',
+          border: notices.length > 0 ? '1px solid #fed7aa' : '1px dashed var(--color-border)',
+          backgroundColor: notices.length > 0 ? '#fff7ed' : 'var(--color-surface)',
           transition: 'all 0.3s',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: notices.length > 0 ? '0.5rem' : 0 }}>
-            <Megaphone size={14} style={{ color: notices.length > 0 ? '#e11d48' : 'var(--color-text-muted)', flexShrink: 0 }} />
+            <Megaphone size={14} style={{ color: notices.length > 0 ? '#ea580c' : 'var(--color-text-muted)', flexShrink: 0 }} />
             <span style={{
               fontSize: '0.75rem', fontWeight: 700,
-              color: notices.length > 0 ? '#e11d48' : 'var(--color-text-muted)',
+              color: notices.length > 0 ? '#ea580c' : 'var(--color-text-muted)',
               textTransform: 'uppercase', letterSpacing: '0.06em',
             }}>
-              Avisos de Administración
+              Avisos
             </span>
           </div>
 
           {notices.length > 0 ? (
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
               {notices.map(n => (
-                <li key={n.id} style={{ fontSize: '0.875rem', color: '#9f1239', fontWeight: 500, paddingLeft: '1.5rem' }}>
-                  • {n.message}
+                <li key={n.id} style={{ 
+                  fontSize: '0.875rem', color: n.isAdmin ? '#9f1239' : '#9a3412', 
+                  fontWeight: n.isAdmin ? 700 : 500, paddingLeft: '1.5rem',
+                  display: 'flex', gap: '0.4rem', alignItems: 'flex-start'
+                }}>
+                  <span style={{ color: n.isAdmin ? '#e11d48' : '#f97316' }}>{n.isAdmin ? '🚨' : '•'}</span>
+                  <span>{n.message}</span>
                 </li>
               ))}
             </ul>
