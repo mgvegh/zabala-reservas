@@ -13,6 +13,7 @@ interface DataStoreContextProps {
   notices: Notice[];
   blocks: SpaceBlock[];
   isLoading: boolean;
+  myToken: string;
   addReservation: (data: Omit<Reservation, 'id' | 'createdAt'>) => Promise<{ success: boolean; error?: string }>;
   cancelReservation: (id: string) => Promise<void>;
   addNotice: (message: string, expiresAt: string, isAdmin?: boolean) => Promise<void>;
@@ -23,8 +24,18 @@ interface DataStoreContextProps {
 
 const DataStoreContext = createContext<DataStoreContextProps | undefined>(undefined);
 
+const getDeviceToken = () => {
+  let token = localStorage.getItem('zabala_device_token');
+  if (!token) {
+    token = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    localStorage.setItem('zabala_device_token', token);
+  }
+  return token;
+};
+
 export const DataStoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const myToken = getDeviceToken();
   const [notices, setNotices] = useState<Notice[]>([]);
   const [blocks, setBlocks] = useState<SpaceBlock[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,8 +45,21 @@ export const DataStoreProvider: React.FC<{ children: ReactNode }> = ({ children 
     const checkLoading = () => { pending -= 1; if (pending <= 0) setIsLoading(false); };
 
     const unsubRes = onSnapshot(collection(db, 'reservations'), (snapshot) => {
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Reservation[];
-      setReservations(data);
+      
+      const activeRes = data.filter(r => {
+        if (r.dateStr < todayStr) {
+          // Lazy background cleanup for old reservations
+          deleteDoc(doc(db, 'reservations', r.id)).catch(() => {});
+          return false;
+        }
+        return true;
+      });
+
+      setReservations(activeRes);
       checkLoading();
     });
 
@@ -73,7 +97,7 @@ export const DataStoreProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
 
     // No hacer await de addDoc: Firebase actualizará localmente al instante (optimista) y enviará al server de fondo.
-    addDoc(collection(db, 'reservations'), { ...data, createdAt: Date.now() }).catch(console.error);
+    addDoc(collection(db, 'reservations'), { ...data, deviceToken: myToken, createdAt: Date.now() }).catch(console.error);
     return { success: true };
   };
 
@@ -93,7 +117,7 @@ export const DataStoreProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   return (
     <DataStoreContext.Provider value={{
-      reservations, notices, blocks, isLoading,
+      reservations, notices, blocks, isLoading, myToken,
       addReservation, cancelReservation,
       addNotice, deleteNotice,
       addBlock, removeBlock,

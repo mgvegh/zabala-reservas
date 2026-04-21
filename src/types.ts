@@ -18,6 +18,7 @@ export interface Reservation {
   dateStr: string; // YYYY-MM-DD
   department: Department;
   createdAt: number;
+  deviceToken?: string;
 }
 
 export interface Notice {

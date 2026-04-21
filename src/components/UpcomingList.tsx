@@ -2,10 +2,10 @@ import React from 'react';
 import { useDataStore } from '../context/DataStore';
 import { format, parseISO, isAfter, startOfDay } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarDays } from 'lucide-react';
+import { CalendarDays, Trash2 } from 'lucide-react';
 
 const UpcomingList: React.FC = () => {
-  const { reservations } = useDataStore();
+  const { reservations, myToken, cancelReservation } = useDataStore();
   const today = startOfDay(new Date());
 
   const upcoming = [...reservations]
@@ -58,9 +58,24 @@ const UpcomingList: React.FC = () => {
             </div>
           </div>
 
-          <span className={`badge badge-${res.space === 'Parrilla' ? 'parrilla' : 'sum'}`}>
-            {res.space}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <span className={`badge badge-${res.space === 'Parrilla' ? 'parrilla' : 'sum'}`}>
+              {res.space}
+            </span>
+            {res.deviceToken === myToken && (
+              <button 
+                onClick={async () => {
+                  if (window.confirm(`¿Seguro que querés cancelar tu reserva del ${format(parseISO(res.dateStr), "d 'de' MMMM", { locale: es })}?`)) {
+                    cancelReservation(res.id);
+                  }
+                }}
+                style={{ color: '#e11d48', padding: '0.35rem', backgroundColor: '#fff1f2', borderRadius: '50%', display: 'flex' }} 
+                title="Cancelar mi reserva"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+          </div>
         </div>
       ))}
     </div>
