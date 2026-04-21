@@ -27,7 +27,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
   const [success, setSuccess] = useState(false);
 
   // Find active block for current selection
-  const activeBlock = blocks.find(b => b.dateStr === dateStr && (b.space === space || b.space === 'Ambos'));
+  const activeBlock = blocks.find(b => dateStr >= b.dateFrom && dateStr <= b.dateTo && (b.space === space || b.space === 'Ambos'));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
