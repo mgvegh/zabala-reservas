@@ -25,20 +25,30 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
   const [department, setDepartment] = useState<Department>('1A');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Find active block for current selection
   const activeBlock = blocks.find(b => dateStr >= b.dateFrom && dateStr <= b.dateTo && (b.space === space || b.space === 'Ambos'));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setError('');
     if (!dateStr) { setError('Por favor seleccioná una fecha.'); return; }
-    const result = await addReservation({ space, turn, dateStr, department });
-    if (result.success) {
-      setSuccess(true);
-      setTimeout(onClose, 1800);
-    } else {
-      setError(result.error || 'Ocurrió un error.');
+    
+    setIsSubmitting(true);
+    try {
+      const result = await addReservation({ space, turn, dateStr, department });
+      if (result.success) {
+        setSuccess(true);
+        setTimeout(onClose, 1800);
+      } else {
+        setError(result.error || 'Ocurrió un error.');
+        setIsSubmitting(false);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error al conectar con el servidor.');
+      setIsSubmitting(false);
     }
   };
 
@@ -169,8 +179,8 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
               </div>
             </div>
 
-            <button type="submit" className="btn btn-primary w-full" style={{ padding: '1rem', marginTop: '0.25rem', fontSize: '1rem' }}>
-              Confirmar Reserva
+            <button type="submit" disabled={isSubmitting} className="btn btn-primary w-full" style={{ padding: '1rem', marginTop: '0.25rem', fontSize: '1rem', opacity: isSubmitting ? 0.7 : 1 }}>
+              {isSubmitting ? 'Confirmando...' : 'Confirmar Reserva'}
             </button>
           </form>
         )}
