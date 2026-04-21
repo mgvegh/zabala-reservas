@@ -265,7 +265,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
               />
             </div>
             <div>
-              <label className="form-label">Expirará (desaparece) el día (opcional):</label>
+              <label className="form-label">Fecha de expiración (opcional)</label>
               <input 
                 type="date" 
                 min={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`}
