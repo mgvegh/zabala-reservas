@@ -1,12 +1,12 @@
 import React from 'react';
 import { useDataStore } from '../context/DataStore';
-import { Megaphone, Settings } from 'lucide-react';
+import { Megaphone, Settings, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 const Header: React.FC = () => {
-  const { notices } = useDataStore();
+  const { notices, myToken, deleteNotice } = useDataStore();
 
   const sortedNotices = [...notices].sort((a, b) => {
     if (a.isAdmin && !b.isAdmin) return -1;
@@ -86,15 +86,33 @@ const Header: React.FC = () => {
                 <li key={n.id} style={{ 
                   fontSize: '0.875rem', color: n.isAdmin ? '#9f1239' : '#9a3412', 
                   fontWeight: n.isAdmin ? 700 : 500, paddingLeft: '1.5rem',
-                  display: 'flex', gap: '0.4rem', alignItems: 'flex-start'
+                  display: 'flex', gap: '0.4rem', alignItems: 'flex-start',
+                  position: 'relative'
                 }}>
-                  <span style={{ color: n.isAdmin ? '#e11d48' : '#f97316' }}>{n.isAdmin ? '🚨' : '•'}</span>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
-                    <span>{n.isAdmin ? `ADMINISTRACIÓN - "${n.message}"` : n.message}</span>
+                  <span style={{ color: n.isAdmin ? '#e11d48' : '#f97316', flexShrink: 0 }}>{n.isAdmin ? '🚨' : '•'}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', flex: 1, minWidth: 0 }}>
+                    <span style={{ wordBreak: 'break-word' }}>{n.isAdmin ? `ADMINISTRACIÓN - "${n.message}"` : n.message}</span>
                     <span style={{ fontSize: '0.7rem', color: n.isAdmin ? '#be123c' : 'var(--color-text-muted)', fontWeight: 400 }}>
                       {format(n.createdAt, "d MMM, HH:mm 'hs'", { locale: es })}
                     </span>
                   </div>
+                  {n.deviceToken === myToken && !n.isAdmin && (
+                    <button 
+                      onClick={() => {
+                        if (window.confirm('¿Seguro que querés eliminar tu aviso?')) {
+                          deleteNotice(n.id);
+                        }
+                      }}
+                      style={{ 
+                        color: '#e11d48', padding: '0.35rem', backgroundColor: '#fff1f2', 
+                        borderRadius: '50%', display: 'flex', flexShrink: 0,
+                        marginLeft: '0.5rem'
+                      }} 
+                      title="Eliminar mi aviso"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>

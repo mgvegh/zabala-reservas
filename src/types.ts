@@ -27,6 +27,7 @@ export interface Notice {
   createdAt: number;
   isAdmin?: boolean;
   expiresAt: string;
+  deviceToken?: string;
 }
 
 export interface SpaceBlock {
