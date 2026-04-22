@@ -20,6 +20,13 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({ currentMonth, onDayClick })
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
   const weekDays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  
+  const maxDate = new Date();
+  maxDate.setMonth(today.getMonth() + 1);
+  const maxDateStr = `${maxDate.getFullYear()}-${String(maxDate.getMonth() + 1).padStart(2, '0')}-${String(maxDate.getDate()).padStart(2, '0')}`;
+
   return (
     <div className="card" style={{ padding: '1rem' }}>
       {/* Weekday headers */}
@@ -48,16 +55,22 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({ currentMonth, onDayClick })
           const dayBlocks = blocks.filter(b => isInRange(dateStr, b.dateFrom, b.dateTo));
           const isCurrentDay = isToday(day);
           const hasBlock = dayBlocks.length > 0;
+          
+          const isPast = dateStr < todayStr;
+          const isTooFar = dateStr > maxDateStr;
+          const isGreyedOut = isPast || isTooFar;
 
           return (
             <div
               key={dateStr}
-              onClick={() => onDayClick(dateStr)}
+              onClick={() => {
+                if (!isGreyedOut) onDayClick(dateStr);
+              }}
               style={{
                 minHeight: '72px',
                 borderRadius: 'var(--radius-md)',
                 padding: '4px',
-                cursor: 'pointer',
+                cursor: isGreyedOut ? 'not-allowed' : 'pointer',
                 border: isCurrentDay
                   ? '2px solid var(--color-text-primary)'
                   : hasBlock
@@ -67,13 +80,16 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({ currentMonth, onDayClick })
                   ? '#fffbeb'
                   : isCurrentDay
                     ? '#f8fafc'
-                    : 'var(--color-background)',
+                    : isGreyedOut
+                      ? '#f1f5f9'
+                      : 'var(--color-background)',
+                opacity: isGreyedOut ? 0.6 : 1,
                 display: 'flex',
                 flexDirection: 'column',
                 transition: 'background-color 0.15s, box-shadow 0.15s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; }}
+              onMouseEnter={e => { if (!isGreyedOut) e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }}
+              onMouseLeave={e => { if (!isGreyedOut) e.currentTarget.style.boxShadow = 'none'; }}
             >
               {/* Day number */}
               <div style={{
