@@ -45,13 +45,14 @@ export const DataStoreProvider: React.FC<{ children: ReactNode }> = ({ children 
     const checkLoading = () => { pending -= 1; if (pending <= 0) setIsLoading(false); };
 
     const unsubRes = onSnapshot(collection(db, 'reservations'), (snapshot) => {
-      const today = new Date();
-      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+      const oneMonthAgoStr = `${oneMonthAgo.getFullYear()}-${String(oneMonthAgo.getMonth() + 1).padStart(2, '0')}-${String(oneMonthAgo.getDate()).padStart(2, '0')}`;
       
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Reservation[];
       
       const activeRes = data.filter(r => {
-        if (r.dateStr < todayStr) {
+        if (r.dateStr < oneMonthAgoStr) {
           // Lazy background cleanup for old reservations
           deleteDoc(doc(db, 'reservations', r.id)).catch(() => {});
           return false;

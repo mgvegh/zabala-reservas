@@ -34,6 +34,13 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
   // Find active block for current selection
   const activeBlock = blocks.find(b => dateStr >= b.dateFrom && dateStr <= b.dateTo && (b.space === space || b.space === 'Ambos'));
 
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  
+  const maxDate = new Date();
+  maxDate.setMonth(maxDate.getMonth() + 1);
+  const maxDateStr = `${maxDate.getFullYear()}-${String(maxDate.getMonth() + 1).padStart(2, '0')}-${String(maxDate.getDate()).padStart(2, '0')}`;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -41,10 +48,13 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
     
     if (!dateStr) { setError('Por favor seleccioná una fecha.'); return; }
     
-    const today = new Date();
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     if (dateStr < todayStr) {
       setError('No está permitido reservar en fechas pasadas.');
+      return;
+    }
+
+    if (dateStr > maxDateStr) {
+      setError('No se puede reservar con más de 1 mes de anticipación.');
       return;
     }
 
@@ -226,7 +236,8 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
                 <input 
                   type="date" 
                   required 
-                  min={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`}
+                  min={todayStr}
+                  max={maxDateStr}
                   value={dateStr} 
                   onChange={e => setDateStr(e.target.value)} 
                 />
@@ -268,7 +279,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
               <label className="form-label">Fecha de expiración (opcional)</label>
               <input 
                 type="date" 
-                min={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`}
+                min={todayStr}
                 value={noticeExpiresAt} 
                 onChange={e => setNoticeExpiresAt(e.target.value)} 
               />
