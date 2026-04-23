@@ -130,6 +130,40 @@ const Admin: React.FC = () => {
     );
   }
 
+  // ── Computed Lists ──
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+  const upcomingReservations = [...reservations].filter(r => r.dateStr >= todayStr).sort((a, b) => a.dateStr.localeCompare(b.dateStr));
+  const pastReservations = [...reservations].filter(r => r.dateStr < todayStr).sort((a, b) => b.dateStr.localeCompare(a.dateStr));
+
+  const renderReservation = (r: typeof reservations[0]) => (
+    <div key={r.id} className="card" style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', padding: '0.875rem 1rem' }}>
+      <div style={{
+        width: '36px', height: '36px', borderRadius: 'var(--radius-md)',
+        backgroundColor: r.space === 'Parrilla' ? '#fee2e2' : '#dcfce7',
+        color: r.space === 'Parrilla' ? '#b91c1c' : '#15803d',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0, fontWeight: 800, fontSize: '0.8rem'
+      }}>
+        {r.space === 'Parrilla' ? '🔥' : '🏛'}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>
+          {format(parseISO(r.dateStr), "EEEE d 'de' MMMM", { locale: es })} · {r.turn}
+        </div>
+        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginTop: '0.15rem' }}>
+          {r.space} · Depto {r.department}
+        </div>
+      </div>
+      <button onClick={async () => {
+        if (window.confirm(`¿Estás seguro que querés eliminar la reserva del depto ${r.department}?`)) {
+          await cancelReservation(r.id);
+        }
+      }} style={{ color: 'var(--color-parrilla)', padding: '0.2rem', flexShrink: 0 }} title="Eliminar reserva">
+        <Trash2 size={16} />
+      </button>
+    </div>
+  );
+
   // ── Admin Content ──
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-surface)', paddingBottom: '3rem' }}>
@@ -327,42 +361,21 @@ const Admin: React.FC = () => {
         {/* RESERVATIONS TAB */}
         {tab === 'reservations' && (
           <div className="animate-fade-in">
-            <h3 className="section-title">Todas las reservas ({reservations.length})</h3>
-            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
-              Las reservas se ordenan comenzando por la más lejana (futuro) hasta la más antigua.
-            </p>
-            {reservations.length === 0 ? (
-              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>No hay reservas registradas en el sistema.</p>
+            <h3 className="section-title">Reservas próximas ({upcomingReservations.length})</h3>
+            {upcomingReservations.length === 0 ? (
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>No hay reservas próximas registradas.</p>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {[...reservations].sort((a, b) => b.dateStr.localeCompare(a.dateStr)).map(r => (
-                  <div key={r.id} className="card" style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', padding: '0.875rem 1rem' }}>
-                    <div style={{
-                      width: '36px', height: '36px', borderRadius: 'var(--radius-md)',
-                      backgroundColor: r.space === 'Parrilla' ? '#fee2e2' : '#dcfce7',
-                      color: r.space === 'Parrilla' ? '#b91c1c' : '#15803d',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      flexShrink: 0, fontWeight: 800, fontSize: '0.8rem'
-                    }}>
-                      {r.space === 'Parrilla' ? '🔥' : '🏛'}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>
-                        {format(parseISO(r.dateStr), "EEEE d 'de' MMMM", { locale: es })} · {r.turn}
-                      </div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginTop: '0.15rem' }}>
-                        {r.space} · Depto {r.department}
-                      </div>
-                    </div>
-                    <button onClick={async () => {
-                      if (window.confirm(`¿Estás seguro que querés eliminar la reserva del depto ${r.department}?`)) {
-                        await cancelReservation(r.id);
-                      }
-                    }} style={{ color: 'var(--color-parrilla)', padding: '0.2rem', flexShrink: 0 }} title="Eliminar reserva">
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                ))}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '2rem' }}>
+                {upcomingReservations.map(renderReservation)}
+              </div>
+            )}
+
+            <h3 className="section-title">Reservas pasadas ({pastReservations.length})</h3>
+            {pastReservations.length === 0 ? (
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>No hay reservas pasadas registradas.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', opacity: 0.75 }}>
+                {pastReservations.map(renderReservation)}
               </div>
             )}
           </div>
