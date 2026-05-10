@@ -14,6 +14,8 @@ const Header: React.FC = () => {
     return b.createdAt - a.createdAt;
   });
 
+  const hasAdminNotice = sortedNotices.some(n => n.isAdmin);
+
   return (
     <header style={{
       backgroundColor: 'rgba(255,255,255,0.85)',
@@ -65,18 +67,18 @@ const Header: React.FC = () => {
         <div style={{
           borderRadius: 'var(--radius-lg)',
           padding: '0.75rem 1rem',
-          border: sortedNotices.length > 0 ? '1px solid #fed7aa' : '1px dashed var(--color-border)',
-          backgroundColor: sortedNotices.length > 0 ? '#fff7ed' : 'var(--color-surface)',
+          border: hasAdminNotice ? '1px solid #fecaca' : (sortedNotices.length > 0 ? '1px solid #fed7aa' : '1px dashed var(--color-border)'),
+          backgroundColor: hasAdminNotice ? '#fef2f2' : (sortedNotices.length > 0 ? '#fff7ed' : 'var(--color-surface)'),
           transition: 'all 0.3s',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: sortedNotices.length > 0 ? '0.5rem' : 0 }}>
-            <Megaphone size={14} style={{ color: sortedNotices.length > 0 ? '#ea580c' : 'var(--color-text-muted)', flexShrink: 0 }} />
+            <Megaphone size={14} style={{ color: hasAdminNotice ? '#e11d48' : (sortedNotices.length > 0 ? '#ea580c' : 'var(--color-text-muted)'), flexShrink: 0 }} />
             <span style={{
               fontSize: '0.75rem', fontWeight: 700,
-              color: sortedNotices.length > 0 ? '#ea580c' : 'var(--color-text-muted)',
+              color: hasAdminNotice ? '#e11d48' : (sortedNotices.length > 0 ? '#ea580c' : 'var(--color-text-muted)'),
               textTransform: 'uppercase', letterSpacing: '0.06em',
             }}>
-              Avisos
+              {hasAdminNotice ? 'Aviso - Administración' : 'Avisos'}
             </span>
           </div>
 
@@ -91,7 +93,7 @@ const Header: React.FC = () => {
                 }}>
                   <span style={{ color: n.isAdmin ? '#e11d48' : '#f97316', flexShrink: 0 }}>{n.isAdmin ? '🚨' : '•'}</span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', flex: 1, minWidth: 0 }}>
-                    <span style={{ wordBreak: 'break-word' }}>{n.isAdmin ? `ADMINISTRACIÓN - "${n.message}"` : n.message}</span>
+                    <span style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{n.message}</span>
                     <span style={{ fontSize: '0.7rem', color: n.isAdmin ? '#be123c' : 'var(--color-text-muted)', fontWeight: 400 }}>
                       {format(n.createdAt, "d MMM, HH:mm 'hs'", { locale: es })}
                     </span>
