@@ -96,6 +96,7 @@ const Header: React.FC = () => {
                     <span style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{n.message}</span>
                     <span style={{ fontSize: '0.7rem', color: n.isAdmin ? '#be123c' : 'var(--color-text-muted)', fontWeight: 400 }}>
                       {format(n.createdAt, "d MMM, HH:mm 'hs'", { locale: es })}
+                      {n.expiresAt && ` • Vence el ${format(new Date(n.expiresAt + 'T12:00:00'), "d 'de' MMMM", { locale: es })}`}
                     </span>
                   </div>
                   {n.deviceToken === myToken && !n.isAdmin && (
