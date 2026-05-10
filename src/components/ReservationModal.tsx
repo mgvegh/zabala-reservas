@@ -38,7 +38,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   
   const maxDate = new Date();
-  maxDate.setMonth(maxDate.getMonth() + 1);
+  maxDate.setMonth(maxDate.getMonth() + 3);
   const maxDateStr = `${maxDate.getFullYear()}-${String(maxDate.getMonth() + 1).padStart(2, '0')}-${String(maxDate.getDate()).padStart(2, '0')}`;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,7 +54,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ initialDate, onClos
     }
 
     if (dateStr > maxDateStr) {
-      setError('No se puede reservar con más de 1 mes de anticipación.');
+      setError('No se puede reservar con más de 3 meses de anticipación.');
       return;
     }
 

@@ -24,7 +24,7 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({ currentMonth, onDayClick })
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   
   const maxDate = new Date();
-  maxDate.setMonth(today.getMonth() + 1);
+  maxDate.setMonth(today.getMonth() + 3);
   const maxDateStr = `${maxDate.getFullYear()}-${String(maxDate.getMonth() + 1).padStart(2, '0')}-${String(maxDate.getDate()).padStart(2, '0')}`;
 
   return (

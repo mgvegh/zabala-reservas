@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDataStore } from '../context/DataStore';
-import type { Space } from '../types';
+import type { Space, Department, Turn } from '../types';
 import { Trash2, ArrowLeft, Megaphone, Lock, PlusCircle, ShieldAlert, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
@@ -8,11 +8,11 @@ import { es } from 'date-fns/locale';
 
 
 const BLOCK_SPACES: (Space | 'Ambos')[] = ['Parrilla', 'SUM', 'Ambos'];
-type AdminTab = 'notices' | 'blocks' | 'reservations';
+type AdminTab = 'notices' | 'blocks' | 'reservations' | 'create_reservation';
 
 const Admin: React.FC = () => {
   // ── ALL hooks must be at the top, unconditionally ──
-  const { notices, addNotice, deleteNotice, blocks, addBlock, removeBlock, reservations, cancelReservation } = useDataStore();
+  const { notices, addNotice, deleteNotice, blocks, addBlock, removeBlock, reservations, cancelReservation, addReservation } = useDataStore();
 
   // Auth state
   const [isAuth, setIsAuth] = useState(false);
@@ -28,6 +28,15 @@ const Admin: React.FC = () => {
   const [blockDateTo, setBlockDateTo] = useState('');
   const [blockReason, setBlockReason] = useState('');
   const [blockSuccess, setBlockSuccess] = useState(false);
+
+  // Admin Create Reservation state
+  const [adminResSpace, setAdminResSpace] = useState<Space>('Parrilla');
+  const [adminResTurn, setAdminResTurn] = useState<Turn>('Mediodía');
+  const [adminResDateStr, setAdminResDateStr] = useState('');
+  const [adminResDepartment, setAdminResDepartment] = useState<Department>('1A');
+  const [adminResDeviceToken, setAdminResDeviceToken] = useState('');
+  const [adminResSuccess, setAdminResSuccess] = useState(false);
+  const [adminResError, setAdminResError] = useState('');
 
   // ── Handlers ──
   const handleLogin = (e: React.FormEvent) => {
@@ -66,6 +75,32 @@ const Admin: React.FC = () => {
     setBlockReason('');
     setBlockSuccess(true);
     setTimeout(() => setBlockSuccess(false), 2500);
+  };
+
+  const handleAdminAddReservation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminResDateStr || !adminResDeviceToken.trim()) return;
+    setAdminResError('');
+    
+    try {
+      const result = await addReservation({
+        space: adminResSpace,
+        turn: adminResTurn,
+        dateStr: adminResDateStr,
+        department: adminResDepartment,
+        deviceToken: adminResDeviceToken.trim()
+      });
+      if (result.success) {
+        setAdminResSuccess(true);
+        setAdminResDateStr('');
+        setAdminResDeviceToken('');
+        setTimeout(() => setAdminResSuccess(false), 2500);
+      } else {
+        setAdminResError(result.error || 'Ocurrió un error');
+      }
+    } catch (err: any) {
+      setAdminResError(err.message || 'Error al conectar con el servidor.');
+    }
   };
 
   const tabStyle = (active: boolean) => ({
@@ -153,6 +188,11 @@ const Admin: React.FC = () => {
         <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginTop: '0.15rem' }}>
           {r.space} · Depto {r.department}
         </div>
+        {r.deviceToken && (
+          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.15rem' }}>
+            ID Dispositivo: {r.deviceToken}
+          </div>
+        )}
       </div>
       <button onClick={async () => {
         if (window.confirm(`¿Estás seguro que querés eliminar la reserva del depto ${r.department}?`)) {
@@ -206,6 +246,10 @@ const Admin: React.FC = () => {
             <Calendar size={14} style={{ display: 'inline', marginRight: '0.4rem', verticalAlign: 'middle' }} />
             Reservas
           </button>
+          <button style={tabStyle(tab === 'create_reservation')} onClick={() => setTab('create_reservation')}>
+            <PlusCircle size={14} style={{ display: 'inline', marginRight: '0.4rem', verticalAlign: 'middle' }} />
+            Crear Res.
+          </button>
         </div>
 
         {/* NOTICES TAB */}
@@ -248,6 +292,7 @@ const Admin: React.FC = () => {
                       <p style={{ fontSize: '0.875rem', margin: 0 }}>{n.message}</p>
                       <p style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', margin: '0.2rem 0 0' }}>
                         {format(n.createdAt, "d MMM yyyy, HH:mm 'hs'", { locale: es })}
+                        {n.deviceToken && ` · ID Dispositivo: ${n.deviceToken}`}
                       </p>
                     </div>
                     <button onClick={() => deleteNotice(n.id)} style={{ color: 'var(--color-parrilla)', flexShrink: 0, padding: '0.2rem' }} title="Eliminar">
@@ -378,6 +423,73 @@ const Admin: React.FC = () => {
                 {pastReservations.map(renderReservation)}
               </div>
             )}
+          </div>
+        )}
+
+        {/* CREATE RESERVATION TAB */}
+        {tab === 'create_reservation' && (
+          <div className="animate-fade-in">
+            <div className="card" style={{ marginBottom: '1.25rem' }}>
+              <h2 style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '1rem' }}>Crear Reserva (Admin)</h2>
+              {adminResSuccess && (
+                <div style={{
+                  backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0',
+                  color: '#15803d', borderRadius: 'var(--radius-md)',
+                  padding: '0.75rem 1rem', marginBottom: '1rem', fontWeight: 600, fontSize: '0.875rem',
+                }}>
+                  ✅ Reserva creada exitosamente.
+                </div>
+              )}
+              {adminResError && (
+                <div style={{
+                  backgroundColor: '#fef2f2', border: '1px solid #fecaca',
+                  color: '#b91c1c', borderRadius: 'var(--radius-md)',
+                  padding: '0.75rem 1rem', marginBottom: '1rem', fontWeight: 500, fontSize: '0.875rem',
+                }}>
+                  ❌ {adminResError}
+                </div>
+              )}
+              <form onSubmit={handleAdminAddReservation} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div>
+                    <label className="form-label">Espacio</label>
+                    <select value={adminResSpace} onChange={e => setAdminResSpace(e.target.value as Space)} style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                      <option value="Parrilla">Parrilla</option>
+                      <option value="SUM">SUM</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label">Turno</label>
+                    <select value={adminResTurn} onChange={e => setAdminResTurn(e.target.value as Turn)} style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                      <option value="Mediodía">Mediodía</option>
+                      <option value="Tarde">Tarde</option>
+                      <option value="Noche">Noche</option>
+                    </select>
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div>
+                    <label className="form-label">Fecha</label>
+                    <input type="date" required value={adminResDateStr} onChange={e => setAdminResDateStr(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="form-label">Departamento</label>
+                    <select value={adminResDepartment} onChange={e => setAdminResDepartment(e.target.value as Department)} style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                      {['1A', '1B', '2A', '2B', '3A', '3B', '4A', '4B', '5A', '5B', '6A', '6B', '7A', '7B', '8A', '8B', '9'].map(d => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="form-label">ID Dispositivo (Para que la puedan ver y borrar)</label>
+                  <input type="text" required value={adminResDeviceToken} onChange={e => setAdminResDeviceToken(e.target.value)} placeholder="Ej: xy123..." />
+                </div>
+                <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start', marginTop: '0.5rem' }}>
+                  <PlusCircle size={15} /> Crear Reserva
+                </button>
+              </form>
+            </div>
           </div>
         )}
       </div>

@@ -98,7 +98,7 @@ export const DataStoreProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
 
     // No hacer await de addDoc: Firebase actualizará localmente al instante (optimista) y enviará al server de fondo.
-    addDoc(collection(db, 'reservations'), { ...data, deviceToken: myToken, createdAt: Date.now() }).catch(console.error);
+    addDoc(collection(db, 'reservations'), { deviceToken: myToken, ...data, createdAt: Date.now() }).catch(console.error);
     return { success: true };
   };
 
